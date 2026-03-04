@@ -45,6 +45,21 @@ app.use((req, res) => {
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err);
+
+  // "Unexpected end of form" = formulário multipart incompleto (proxy/upload truncado)
+  if (err.message && err.message.includes('Unexpected end of form')) {
+    return res.status(400).json({
+      error: 'Upload incompleto. Verifique: tamanho do arquivo, conexão ou configuração do proxy (client_max_body_size, proxy_request_buffering).',
+    });
+  }
+
+  // Erros do Multer (ex: LIMIT_FILE_SIZE)
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      error: `Arquivo muito grande. Limite: ${(parseInt(process.env.MAX_FILE_SIZE, 10) || 5 * 1024 * 1024) / 1024 / 1024} MB.`,
+    });
+  }
+
   res.status(err.status || 500).json({
     error: err.message || 'Erro interno do servidor.',
   });

@@ -69,8 +69,20 @@ GIFs são mantidos no formato original; JPG/PNG são convertidos para WebP otimi
    pm2 start server.js --name dredecoplays-img
    ```
 
-5. **Proxy reverso**  
-   Configure Nginx ou Apache para encaminhar requisições de `img.dredecoplays.com.br` para a porta do Node (ex: 3002).
+5. **Proxy reverso (Nginx)**  
+   Configure Nginx para encaminhar requisições de `img.dredecoplays.com.br` para a porta do Node (ex: 3002).  
+   Para uploads funcionarem sem o erro "Unexpected end of form", adicione no bloco `server` ou `location`:
+
+   ```nginx
+   client_max_body_size 10M;
+   proxy_request_buffering off;
+   proxy_buffering off;
+   proxy_read_timeout 60s;
+   proxy_connect_timeout 60s;
+   proxy_send_timeout 60s;
+   ```
+
+   `client_max_body_size` deve ser >= `MAX_FILE_SIZE` (ex: 5M). `proxy_request_buffering off` evita que o Nginx trunque o body do upload.
 
 6. **Persistência**  
    Mantenha a pasta `public/uploads/` fora de deploys que sobrescrevem arquivos, para não perder imagens.
